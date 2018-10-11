@@ -1,0 +1,25 @@
+# Makefile for TuxPuck Utils , Copyright Jacob Kroon 2001-2002
+#CC		= m68k-amigaos-gcc
+CC=gcc
+
+#CFLAGS		+= -noixemul -Os -Wall -Wno-unused -fomit-frame-pointer -Wall -Werror
+CFLAGS=-Wall 
+#############################################################
+
+all : ttf2font data2c anim
+
+ttf2font : ttf2font.c
+	$(CC) $(CFLAGS) ttf2font.c -I/data/libfreetype2/include -L/data/libfreetype2/lib -lfreetype -L/opt/amiga/zlib-package/lib -lz -lm  -o ttf2font
+
+data2c : data2c.c
+	$(CC)  $(CFLAGS) -I/opt/amiga/include/SDL data2c.c  -o data2c
+
+anim : anim.c
+	$(CC) $(CFLAGS) anim.c -I/opt/amiga/include/SDL  -o anim
+
+clean :
+	rm -f *~ data2c ttf2font anim
+
+indent :
+	indent -br -brs -sob -ce -c50 -npsl -npcs data2c.c ttf2font.c anim.c
+	rm -f *~
