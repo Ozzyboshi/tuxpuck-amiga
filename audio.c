@@ -117,7 +117,7 @@ void audio_init(void)
   SDL_AudioSpec wanted;
   
   /* Set the audio format */
-    wanted.freq = 22050;
+    wanted.freq = 11025;
     wanted.format = AUDIO_S16SYS;
     wanted.channels = 1;    /* 1 = mono, 2 = stereo */
     wanted.samples = 1024;  /* Good low-latency value for callback */
@@ -203,23 +203,44 @@ Sound *audio_create_sound(Uint8 * data, Uint32 * memcounter)
   Uint32 size = 0, buffer_size = 0, bytes_read = 0, counter = 0;
 
   revmemcpy_snd(&size, data, sizeof(Uint32));
+#ifdef _DEBUG
+	printf("Size : %d %d %d %d %d\n",size,data[0],data[1],data[2],data[3]);
+#endif
   //memcpy(&size, data, sizeof(Uint32));
+#ifdef _DEBUG
+	printf("Memcounter: %d\n",memcounter);
+#endif
 if (memcounter)
     *memcounter += size + sizeof(Uint32);
   if (!_initiated)
     goto done;
+#ifdef _DEBUG
+	printf("Data : %d\n",data[0],data[1]);
+#endif
   data += sizeof(Uint32);
   src = SDL_RWFromMem(data, size);
   vf = (OggVorbis_File *) malloc(sizeof(OggVorbis_File));
   if (ov_open_callbacks(src, vf, NULL, 0, _ogg_callbacks) != 0)
     goto done;
+#ifdef _DEBUG
+	printf("Ov open callbacks done\n");
+#endif
   ov_open_success = 1;
   vi = ov_info(vf, -1);
+#ifdef _DEBUG
+	printf("Vi channels: %d %d %d %d\n",vi->channels,vi->rate,_spec.channels,_spec.freq);
+#endif
   if (vi->channels != _spec.channels || vi->rate != _spec.freq)
     goto done;
+#ifdef _DEBUG
+	printf("Vi channels done\n");
+#endif
   buffer_size = ov_pcm_total(vf, -1) * _spec.channels * 2;
   if (buffer_size > BUFFER_LIMIT)
     goto done;
+#ifdef _DEBUG
+	printf("Buffer size allocated %d\n",buffer_size);
+#endif
   sound = (Sound *) malloc(sizeof(Sound));
   sound->length = buffer_size;
   sound->single = 1;
@@ -235,6 +256,9 @@ if (memcounter)
     if (counter > buffer_size)
       goto done;
   }
+  #ifdef _DEBUG
+	printf("OV read done\n");
+#endif
 done:
   if (ov_open_success)
     ov_clear(vf);
